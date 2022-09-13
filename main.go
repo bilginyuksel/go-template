@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"go.uber.org/zap"
+)
 
 func main() {
-	fmt.Println("vim-go")
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	logger.Info("Hello, world!")
 }

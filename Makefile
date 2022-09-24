@@ -1,5 +1,5 @@
 run:
-	go run .
+	go run ./cmd
 
 lint:
 	golangci-lint run

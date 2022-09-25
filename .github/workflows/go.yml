@@ -36,14 +36,7 @@ jobs:
 
       - name: Run Coverage
         run: |
-          export COVERAGE_THRESHOLD=80
-          go test -race -coverprofile=coverage.out -covermode=atomic ./...
-          coverage=$(go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+')
-          if [ 1 -eq "$(echo "${coverage} < ${COVERAGE_THRESHOLD}" | bc)" ]
-          then
-            echo "Insufficient test coverage, threshold=${COVERAGE_THRESHOLD}, coverage= ${coverage}"
-            exit 1
-          fi
+          chmod +x scripts/code_coverage.sh && sh scripts/code_coverage.sh
 
   lint:
     runs-on: ubuntu-latest
@@ -57,6 +50,8 @@ jobs:
   docker-push:
     name: Build and push docker image to docker hub
     runs-on: ubuntu-latest
+    # docker push only if it is main for now
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
 

@@ -49,6 +49,8 @@ jobs:
   docker-push:
     name: Build and push docker image to docker hub
     runs-on: ubuntu-latest
+    # docker push only if it is main for now
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
 

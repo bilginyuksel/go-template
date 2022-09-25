@@ -35,7 +35,10 @@ jobs:
           check-latest: true
 
       - name: Run Coverage
-        run: chmod +x ../scripts/code_coverage.sh && sh ../scripts/code_coverage.sh
+        run: |
+          pwd
+          ls
+          chmod +x ../scripts/code_coverage.sh && sh ../scripts/code_coverage.sh
 
   lint:
     runs-on: ubuntu-latest

@@ -10,5 +10,6 @@ func main() {
 		panic(err)
 	}
 
-	logger.Info("Hello, world!")
+	conf := readConfig()
+	logger.Info("application started..", zap.Any("conf", conf))
 }

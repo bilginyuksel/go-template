@@ -36,9 +36,7 @@ jobs:
 
       - name: Run Coverage
         run: |
-          pwd
-          ls
-          chmod +x ../scripts/code_coverage.sh && sh ../scripts/code_coverage.sh
+          chmod +x scripts/code_coverage.sh && sh scripts/code_coverage.sh
 
   lint:
     runs-on: ubuntu-latest

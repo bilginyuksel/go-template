@@ -36,7 +36,9 @@ func (b *Broker) Publish(ctx context.Context, event string, message []byte) {
 
 	subscribers := b.events[event]
 	for _, subscriber := range subscribers {
-		subscriber(ctx, message)
+		if err := subscriber(ctx, message); err != nil {
+			zap.L().Error("broker: subscriber could not processed the message", zap.Error(err), zap.ByteString("message", message))
+		}
 	}
 }
 

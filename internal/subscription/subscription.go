@@ -30,6 +30,7 @@ type Subscription struct {
 	// Settings for notifications
 	Settings Settings
 
+	NoticeAt      time.Time
 	NextPaymentAt time.Time
 	LastPaidAt    time.Time
 }
@@ -37,6 +38,14 @@ type Subscription struct {
 type Settings struct {
 	Notify     bool
 	BeforeDays int
+}
+
+func (s *Subscription) CalculateSubscriptionNotice() {
+	daysBefore := s.Settings.BeforeDays
+
+	now := time.Now()
+	nextPayday := time.Date(now.Year(), now.Month(), s.PaymentDayOfMonth, 0, 0, 0, 0, now.Location())
+	s.NoticeAt = nextPayday.Add(-time.Hour * 24 * time.Duration(daysBefore))
 }
 
 func (s *Subscription) UpdateSubscriptionState() {

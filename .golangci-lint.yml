@@ -70,7 +70,6 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
-
     ## you may want to enable
     - decorder # checks declaration order and count of types, constants, variables and functions
     - exhaustruct # checks if all structure fields are initialized
@@ -82,24 +81,7 @@ linters:
     - prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
     - varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     - wrapcheck # checks that errors returned from external packages are wrapped
-
-    ## disabled
-    #- containedctx # detects struct contained context.Context field
-    #- depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages
-    #- dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
-    #- errchkjson # [don't see profit + I'm against of omitting errors like in the first example https://github.com/breml/errchkjson] checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted
-    #- forcetypeassert # [replaced by errcheck] finds forced type assertions
-    #- goerr113 # [too strict] checks the errors handling expressions
-    #- gofmt # [replaced by goimports] checks whether code was gofmt-ed
-    #- gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
-    #- grouper # analyzes expression groups
-    #- importas # enforces consistent import aliases
-    #- logrlint # [owner archived repository] checks logr arguments
-    #- maintidx # measures the maintainability index of each function
-    #- misspell # [useless] finds commonly misspelled English words in comments
-    #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
-    #- paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
-    #- tagliatelle # checks the struct tags
-    #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
-    #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
-
+    - maintidx # measures the maintainability index of each function
+    - gofmt # [replaced by goimports] checks whether code was gofmt-ed
+    - gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
+    - depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages

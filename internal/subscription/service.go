@@ -51,13 +51,9 @@ func (s *Service) ReceiveSubscriptionPaymentNotice(ctx context.Context, id strin
 		return err
 	}
 
-	if subscription.IsDue() {
-		if err := s.publishExpense(ctx, subscription); err != nil {
-			return err
-		}
+	if err := s.publishExpense(ctx, subscription); err != nil {
+		return err
 	}
-
-	subscription.UpdateSubscriptionState()
 
 	return s.repo.Update(ctx, subscription)
 }

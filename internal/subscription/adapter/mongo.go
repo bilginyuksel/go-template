@@ -33,7 +33,16 @@ func (m *Mongo) Insert(ctx context.Context, subs *subscription.Subscription) (st
 	return oid.Hex(), err
 }
 
-func (m *Mongo) GetAll(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error) {
+func (m *Mongo) Filter(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error) {
+	filter := make(bson.M)
+	if f.Status != "" {
+		filter["status"] = f.Status
+	}
+
+	if !f.NoticeAt.IsZero() {
+		filter["noticeAt"] = f.NoticeAt
+	}
+
 	cursor, err := m.coll.Find(ctx, bson.M{"status": string(f.Status)})
 	if err != nil {
 		zap.L().Error("failed to get all subscriptions", zap.Error(err))

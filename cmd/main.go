@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/robfig/cron/v3"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -33,6 +34,14 @@ func main() {
 	subscriptionRepository := subscription_adapter.NewMongo(client.Database("gotemplate").Collection("subscriptions"))
 	subscriptionService := subscription.NewService(subscriptionRepository, nil)
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)
+	subscriptionCronjob := subscription_port.NewSubscriptionNotificationCronjob(subscriptionService, 10)
+
+	c := cron.New()
+	if _, err := c.AddFunc("0 0 0 * * *", subscriptionCronjob.Notify); err != nil {
+		panic(err)
+	}
+	c.Run()
+	defer c.Stop()
 
 	e := echo.New()
 

@@ -11,7 +11,7 @@ import (
 
 type SubscriptionService interface {
 	CreateSubscription(ctx context.Context, subs *subscription.Subscription) (string, error)
-	ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error)
+	FilterSubscriptions(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error)
 }
 
 // SubscriptionRestHandler is responsible for handling subscription related requests
@@ -131,7 +131,9 @@ type listSubscriptionsResponse []subscriptionResponse
 
 // ListSubscriptions lists all subscriptions
 func (h *SubscriptionRestHandler) ListSubscriptions(c echo.Context) error {
-	subscriptions, err := h.svc.ListSubscriptions(c.Request().Context())
+	subscriptions, err := h.svc.FilterSubscriptions(c.Request().Context(),
+		subscription.Filter{Status: subscription.Active},
+	)
 	if err != nil {
 		return err
 	}

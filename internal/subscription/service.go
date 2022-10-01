@@ -2,12 +2,15 @@ package subscription
 
 import (
 	"context"
+	"time"
+
+	"go.uber.org/zap"
 )
 
 type (
 	Repository interface {
 		Insert(ctx context.Context, subs *Subscription) (string, error)
-		GetAll(ctx context.Context, filter Filter) ([]Subscription, error)
+		Filter(ctx context.Context, filter Filter) ([]Subscription, error)
 	}
 
 	LocalEventChannel interface {
@@ -44,30 +47,28 @@ func (s *Service) CancelSubscription(ctx context.Context, id string) error {
 
 // Filter is used to filter list of subscriptions
 type Filter struct {
-	Status Status
+	Status   Status
+	NoticeAt time.Time
 }
 
 // ListSubscriptions lists all subscriptions
-func (s *Service) ListSubscriptions(ctx context.Context) ([]Subscription, error) {
-	return s.repo.GetAll(ctx, Filter{Active})
+func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscription, error) {
+	return s.repo.Filter(ctx, f)
 }
 
-// ReceiveSubscriptionPaymentNotice is called when a subscription notice is received
+// NotifySubscription is called when a subscription notice is received
 // Checks subscription date and if it is due, creates an expense
 // If it is not due, it updates the subscription date
 // Sends a notification to the user
-// func (s *Service) ReceiveSubscriptionPaymentNotice(ctx context.Context, id string, days int) error {
-// 	subscription, err := s.repo.Get(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
+func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) error {
+	zap.L().Info("notifying subscription", zap.String("id", subs.ID))
+	// if err := s.publishExpense(ctx, subscription); err != nil {
+	// 	return err
+	// }
 
-// 	if err := s.publishExpense(ctx, subscription); err != nil {
-// 		return err
-// 	}
-
-// 	return s.repo.Update(ctx, subscription)
-// }
+	// return s.repo.Update(ctx, subscription)
+	return nil
+}
 
 // type expenseEventMsg struct {
 // 	Title       string

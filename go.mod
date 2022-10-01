@@ -43,6 +43,7 @@ require (
 
 require (
 	github.com/labstack/echo/v4 v4.9.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.0
 	go.mongodb.org/mongo-driver v1.10.2

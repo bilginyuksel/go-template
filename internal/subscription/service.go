@@ -3,35 +3,49 @@ package subscription
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"time"
+
+	"go.uber.org/zap"
 )
 
 type (
+	// Repository is the interface that provides subscription storage methods
 	Repository interface {
-		Get(ctx context.Context, id string) (*Subscription, error)
-		Insert(ctx context.Context, subs *Subscription) error
-		Update(ctx context.Context, subs *Subscription) error
+		Insert(ctx context.Context, subs *Subscription) (string, error)
+		UpdateNoticeTime(ctx context.Context, id string, noticeAt time.Time) error
+		Filter(ctx context.Context, filter Filter) ([]Subscription, error)
 	}
 
+	// LocalEventChannel is the interface that provides local event methods
 	LocalEventChannel interface {
-		Publish(ctx context.Context, event interface{}) error
+		Publish(ctx context.Context, event string, msg []byte)
 	}
 )
 
+// Service provides subscription apis
 type Service struct {
+	notificationEventChannel string
+
 	repo Repository
 	lec  LocalEventChannel
 }
 
+// NewService creates a new subscription service
+func NewService(repo Repository, lec LocalEventChannel) *Service {
+	return &Service{
+		notificationEventChannel: "gotemplate.notification",
+
+		repo: repo,
+		lec:  lec,
+	}
+}
+
 // CreateSubscription creates a new subscription record
 // Users configures set of settings for their subscription notifications
-func (s *Service) CreateSubscription(ctx context.Context, subs Subscription) error {
-	// create subscription record in db
-	// create a timer to notify user when next payment is due
-	// we need to get some settings about notifications by email and or how many days ahead to notify
-	// how many paychecks to deduct from initial creation
-	s.repo.Insert(ctx, &subs)
-	return nil
+func (s *Service) CreateSubscription(ctx context.Context, subs *Subscription) (string, error) {
+	subs.NoticeAt = subs.NextNotice()
+
+	return s.repo.Insert(ctx, subs)
 }
 
 // CancelSubscription cancels a subscription
@@ -41,46 +55,50 @@ func (s *Service) CancelSubscription(ctx context.Context, id string) error {
 	return nil
 }
 
-// ReceiveSubscriptionPaymentNotice is called when a subscription notice is received
-// Checks subscription date and if it is due, creates an expense
-// If it is not due, it updates the subscription date
+// Filter is used to filter list of subscriptions
+type Filter struct {
+	Status   Status
+	NoticeAt time.Time
+}
+
+// FilterSubscriptions filters subscriptions
+func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscription, error) {
+	return s.repo.Filter(ctx, f)
+}
+
+// NotifySubscription is called when a subscription notice is received
 // Sends a notification to the user
-func (s *Service) ReceiveSubscriptionPaymentNotice(ctx context.Context, id string, days int) error {
-	subscription, err := s.repo.Get(ctx, id)
+func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) error {
+	if err := s.publishNotificationEvent(ctx, subs); err != nil {
+		zap.L().Error("subscription notification event publish failed", zap.Error(err))
+		return err
+	}
+
+	return s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice())
+}
+
+// notificationEvent is the event that is published when a subscription is notified
+type notificationEvent struct {
+	Company  string  `json:"company"`
+	Service  string  `json:"service"`
+	Price    float32 `json:"price"`
+	DaysLeft int     `json:"daysLeft"`
+}
+
+func (s *Service) publishNotificationEvent(ctx context.Context, subs *Subscription) error {
+	msg := notificationEvent{
+		Company:  subs.Company,
+		Service:  subs.Service,
+		Price:    subs.Price,
+		DaysLeft: subs.Settings.BeforeDays,
+	}
+
+	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
-	if subscription.IsDue() {
-		if err := s.publishExpense(ctx, subscription); err != nil {
-			return err
-		}
-	}
+	s.lec.Publish(ctx, s.notificationEventChannel, msgBytes)
 
-	subscription.UpdateSubscriptionState()
-
-	return s.repo.Update(ctx, subscription)
-}
-
-type expenseEventMsg struct {
-	Title       string
-	Description string
-	Price       float32
-	Service     string
-}
-
-func (s *Service) publishExpense(ctx context.Context, subs *Subscription) error {
-	msg := &expenseEventMsg{
-		Title:       subs.Service,
-		Description: fmt.Sprintf("Subscription for %s", subs.Service),
-		Price:       subs.Price,
-		Service:     subs.Service,
-	}
-
-	eventBytes, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-
-	return s.lec.Publish(ctx, eventBytes)
+	return nil
 }

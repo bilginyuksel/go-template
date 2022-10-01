@@ -1,5 +1,5 @@
 run:
-	go run ./cmd
+	APP_ENV=local go run ./cmd
 
 lint:
 	golangci-lint run

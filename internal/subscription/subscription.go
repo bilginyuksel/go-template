@@ -2,57 +2,42 @@ package subscription
 
 import "time"
 
-const _durationMonth = time.Hour * 24 * 30
-
-type Period string
+// Status is the subscription status
+type Status string
 
 const (
-	PeriodWeekly  Period = "weekly"
-	PeriodMonthly Period = "monthly"
-	PeriodYearly  Period = "yearly"
+	// Active subscriptions will be notified when it's notice time
+	Active Status = "active"
+	// Canceled subscriptions will be kept to keep history, but will not be notified
+	Canceled Status = "canceled"
 )
 
+// Subscription is the model for subscription
 type Subscription struct {
 	ID string
 
-	PaymentAccount string
+	Company string
+	Service string
+	Price   float32
 
-	Company     string
-	Service     string
-	Period      Period
-	Price       float32
-	Description string
-	Start       time.Time
-	End         time.Time
+	MonthlyPayday int
 
-	PaymentDayOfMonth int
-
-	// Settings for notifications
 	Settings Settings
+	Status   Status
 
-	NoticeAt      time.Time
-	NextPaymentAt time.Time
-	LastPaidAt    time.Time
+	StartedAt time.Time
+	NoticeAt  time.Time
 }
 
+// Settings subscription notification settings
 type Settings struct {
 	Notify     bool
 	BeforeDays int
 }
 
-func (s *Subscription) CalculateSubscriptionNotice() {
-	daysBefore := s.Settings.BeforeDays
-
+// NextNotice returns the subscription next notice time
+func (s *Subscription) NextNotice() time.Time {
 	now := time.Now()
-	nextPayday := time.Date(now.Year(), now.Month(), s.PaymentDayOfMonth, 0, 0, 0, 0, now.Location())
-	s.NoticeAt = nextPayday.Add(-time.Hour * 24 * time.Duration(daysBefore))
-}
-
-func (s *Subscription) UpdateSubscriptionState() {
-	s.LastPaidAt = s.NextPaymentAt
-	s.NextPaymentAt = s.NextPaymentAt.Add(_durationMonth)
-}
-
-func (s *Subscription) IsDue() bool {
-	return s.NextPaymentAt.Before(time.Now())
+	payday := time.Date(now.Year(), now.Month(), s.MonthlyPayday, 0, 0, 0, 0, now.Location())
+	return payday.Add(-time.Duration(s.Settings.BeforeDays) * 24 * time.Hour)
 }

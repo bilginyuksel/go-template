@@ -8,9 +8,7 @@ import (
 
 type (
 	Repository interface {
-		Get(ctx context.Context, id string) (*Subscription, error)
-		Insert(ctx context.Context, subs *Subscription) error
-		Update(ctx context.Context, subs *Subscription) error
+		Insert(ctx context.Context, subs *Subscription) (string, error)
 	}
 
 	LocalEventChannel interface {
@@ -23,15 +21,19 @@ type Service struct {
 	lec  LocalEventChannel
 }
 
+func NewService(repo Repository, lec LocalEventChannel) *Service {
+	return &Service{
+		repo: repo,
+		lec:  lec,
+	}
+}
+
 // CreateSubscription creates a new subscription record
 // Users configures set of settings for their subscription notifications
-func (s *Service) CreateSubscription(ctx context.Context, subs Subscription) error {
-	// create subscription record in db
-	// create a timer to notify user when next payment is due
-	// we need to get some settings about notifications by email and or how many days ahead to notify
-	// how many paychecks to deduct from initial creation
-	s.repo.Insert(ctx, &subs)
-	return nil
+func (s *Service) CreateSubscription(ctx context.Context, subs *Subscription) (string, error) {
+	subs.NoticeAt = subs.NextNotice()
+
+	return s.repo.Insert(ctx, subs)
 }
 
 // CancelSubscription cancels a subscription
@@ -45,18 +47,18 @@ func (s *Service) CancelSubscription(ctx context.Context, id string) error {
 // Checks subscription date and if it is due, creates an expense
 // If it is not due, it updates the subscription date
 // Sends a notification to the user
-func (s *Service) ReceiveSubscriptionPaymentNotice(ctx context.Context, id string, days int) error {
-	subscription, err := s.repo.Get(ctx, id)
-	if err != nil {
-		return err
-	}
+// func (s *Service) ReceiveSubscriptionPaymentNotice(ctx context.Context, id string, days int) error {
+// 	subscription, err := s.repo.Get(ctx, id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if err := s.publishExpense(ctx, subscription); err != nil {
-		return err
-	}
+// 	if err := s.publishExpense(ctx, subscription); err != nil {
+// 		return err
+// 	}
 
-	return s.repo.Update(ctx, subscription)
-}
+// 	return s.repo.Update(ctx, subscription)
+// }
 
 type expenseEventMsg struct {
 	Title       string

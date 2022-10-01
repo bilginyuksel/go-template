@@ -12,7 +12,8 @@ type Subscription struct {
 	Start       time.Time
 	End         time.Time
 
-	MonthlyPayday int
+	PaidInstallments int
+	MonthlyPayday    int
 
 	Settings Settings
 
@@ -22,4 +23,10 @@ type Subscription struct {
 type Settings struct {
 	Notify     bool
 	BeforeDays int
+}
+
+func (s *Subscription) NextNotice() time.Time {
+	now := time.Now()
+	payday := time.Date(now.Year(), now.Month(), s.MonthlyPayday, 0, 0, 0, 0, now.Location())
+	return payday.Add(-time.Duration(s.Settings.BeforeDays) * 24 * time.Hour)
 }

@@ -2,13 +2,12 @@ package subscription
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 )
 
 type (
 	Repository interface {
 		Insert(ctx context.Context, subs *Subscription) (string, error)
+		GetAll(ctx context.Context, filter Filter) ([]Subscription, error)
 	}
 
 	LocalEventChannel interface {
@@ -43,6 +42,16 @@ func (s *Service) CancelSubscription(ctx context.Context, id string) error {
 	return nil
 }
 
+// Filter is used to filter list of subscriptions
+type Filter struct {
+	Status Status
+}
+
+// ListSubscriptions lists all subscriptions
+func (s *Service) ListSubscriptions(ctx context.Context) ([]Subscription, error) {
+	return s.repo.GetAll(ctx, Filter{Active})
+}
+
 // ReceiveSubscriptionPaymentNotice is called when a subscription notice is received
 // Checks subscription date and if it is due, creates an expense
 // If it is not due, it updates the subscription date
@@ -60,25 +69,25 @@ func (s *Service) CancelSubscription(ctx context.Context, id string) error {
 // 	return s.repo.Update(ctx, subscription)
 // }
 
-type expenseEventMsg struct {
-	Title       string
-	Description string
-	Price       float32
-	Service     string
-}
+// type expenseEventMsg struct {
+// 	Title       string
+// 	Description string
+// 	Price       float32
+// 	Service     string
+// }
 
-func (s *Service) publishExpense(ctx context.Context, subs *Subscription) error {
-	msg := &expenseEventMsg{
-		Title:       subs.Service,
-		Description: fmt.Sprintf("Subscription for %s", subs.Service),
-		Price:       subs.Price,
-		Service:     subs.Service,
-	}
+// func (s *Service) publishExpense(ctx context.Context, subs *Subscription) error {
+// 	msg := &expenseEventMsg{
+// 		Title:       subs.Service,
+// 		Description: fmt.Sprintf("Subscription for %s", subs.Service),
+// 		Price:       subs.Price,
+// 		Service:     subs.Service,
+// 	}
 
-	eventBytes, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
+// 	eventBytes, err := json.Marshal(msg)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return s.lec.Publish(ctx, eventBytes)
-}
+// 	return s.lec.Publish(ctx, eventBytes)
+// }

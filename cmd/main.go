@@ -37,6 +37,7 @@ func main() {
 	e := echo.New()
 
 	e.POST("/subscriptions", subscriptionRestHandler.CreateSubscription)
+	e.GET("/subscriptions", subscriptionRestHandler.ListSubscriptions)
 
 	if err := e.Start(fmt.Sprintf(":%d", conf.Port)); err != nil {
 		logger.Fatal("shutting down the server", zap.Error(err))

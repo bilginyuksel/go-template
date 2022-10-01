@@ -2,6 +2,13 @@ package subscription
 
 import "time"
 
+type Status string
+
+const (
+	Active   Status = "active"
+	Canceled Status = "canceled"
+)
+
 type Subscription struct {
 	ID string
 
@@ -16,6 +23,7 @@ type Subscription struct {
 	MonthlyPayday    int
 
 	Settings Settings
+	Status   Status
 
 	NoticeAt time.Time
 }

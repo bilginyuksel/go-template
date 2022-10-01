@@ -5,6 +5,7 @@ import (
 	"gotemplate/internal/subscription"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -30,6 +31,27 @@ func (m *Mongo) Insert(ctx context.Context, subs *subscription.Subscription) (st
 
 	oid, _ := res.InsertedID.(primitive.ObjectID)
 	return oid.Hex(), err
+}
+
+func (m *Mongo) GetAll(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error) {
+	cursor, err := m.coll.Find(ctx, bson.M{"status": string(f.Status)})
+	if err != nil {
+		zap.L().Error("failed to get all subscriptions", zap.Error(err))
+		return nil, err
+	}
+
+	subscriptions := make([]subscription.Subscription, 0)
+	for cursor.Next(ctx) {
+		var mongoSubs mongoSubscription
+		if err := cursor.Decode(&mongoSubs); err != nil {
+			zap.L().Error("failed to decode subscription", zap.Error(err))
+			return nil, err
+		}
+
+		subscriptions = append(subscriptions, *mongoSubs.toSubscription())
+	}
+
+	return subscriptions, nil
 }
 
 type mongoSubscription struct {
@@ -63,5 +85,24 @@ func newMongoSubscription(subs *subscription.Subscription) *mongoSubscription {
 		NoticeBeforeDays: subs.Settings.BeforeDays,
 		NoticeAt:         subs.NoticeAt,
 		CreatedAt:        time.Now().UTC(),
+	}
+}
+
+func (ms *mongoSubscription) toSubscription() *subscription.Subscription {
+	return &subscription.Subscription{
+		ID:               ms.ID.Hex(),
+		Company:          ms.Company,
+		Service:          ms.Service,
+		Price:            ms.Price,
+		Description:      ms.Description,
+		Start:            ms.Start,
+		End:              ms.End,
+		PaidInstallments: ms.PaidInstallments,
+		MonthlyPayday:    ms.MonthlyPayday,
+		Settings: subscription.Settings{
+			Notify:     ms.Notify,
+			BeforeDays: ms.NoticeBeforeDays,
+		},
+		NoticeAt: ms.NoticeAt,
 	}
 }

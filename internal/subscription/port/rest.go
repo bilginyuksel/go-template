@@ -11,6 +11,7 @@ import (
 
 type SubscriptionService interface {
 	CreateSubscription(ctx context.Context, subs *subscription.Subscription) (string, error)
+	ListSubscriptions(ctx context.Context) ([]subscription.Subscription, error)
 }
 
 // SubscriptionRestHandler is responsible for handling subscription related requests
@@ -81,4 +82,64 @@ func (h *SubscriptionRestHandler) CreateSubscription(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, createSubscriptionResponse{id})
+}
+
+// subscriptionResponse is the response model for a subscription
+type subscriptionResponse struct {
+	ID               string  `json:"id"`
+	Company          string  `json:"company"`
+	Service          string  `json:"service"`
+	Price            float32 `json:"price"`
+	Description      string  `json:"description"`
+	Start            string  `json:"start"`
+	End              string  `json:"end"`
+	PaidInstallments int     `json:"paidInstallments"`
+	MonthlyPayday    int     `json:"monthlyPayday"`
+	Settings         struct {
+		NoticeBeforeDays int  `json:"noticeBeforeDays"`
+		Notify           bool `json:"notify"`
+	} `json:"settings"`
+	Status   string    `json:"status"`
+	NoticeAt time.Time `json:"noticeAt"`
+}
+
+func newSubscriptionResponse(subs *subscription.Subscription) *subscriptionResponse {
+	return &subscriptionResponse{
+		ID:               subs.ID,
+		Company:          subs.Company,
+		Service:          subs.Service,
+		Price:            subs.Price,
+		Description:      subs.Description,
+		Start:            subs.Start.Format(time.RFC3339),
+		End:              subs.End.Format(time.RFC3339),
+		PaidInstallments: subs.PaidInstallments,
+		MonthlyPayday:    subs.MonthlyPayday,
+		Status:           string(subs.Status),
+		NoticeAt:         subs.NoticeAt,
+		Settings: struct {
+			NoticeBeforeDays int  `json:"noticeBeforeDays"`
+			Notify           bool `json:"notify"`
+		}{
+			NoticeBeforeDays: subs.Settings.BeforeDays,
+			Notify:           subs.Settings.Notify,
+		},
+	}
+}
+
+// listSubscriptionsResponse is the response model for listing subscriptions
+type listSubscriptionsResponse []subscriptionResponse
+
+// ListSubscriptions lists all subscriptions
+func (h *SubscriptionRestHandler) ListSubscriptions(c echo.Context) error {
+	subscriptions, err := h.svc.ListSubscriptions(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	var res listSubscriptionsResponse
+	for idx := range subscriptions {
+		res = append(res, *newSubscriptionResponse(&subscriptions[idx]))
+	}
+
+	return c.JSON(http.StatusOK, res)
 }

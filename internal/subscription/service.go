@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,12 +18,14 @@ type (
 
 	// LocalEventChannel is the interface that provides local event methods
 	LocalEventChannel interface {
-		Publish(ctx context.Context, event interface{}) error
+		Publish(ctx context.Context, event string, msg []byte)
 	}
 )
 
 // Service provides subscription apis
 type Service struct {
+	notificationEventChannel string
+
 	repo Repository
 	lec  LocalEventChannel
 }
@@ -30,6 +33,8 @@ type Service struct {
 // NewService creates a new subscription service
 func NewService(repo Repository, lec LocalEventChannel) *Service {
 	return &Service{
+		notificationEventChannel: "gotemplate.notification",
+
 		repo: repo,
 		lec:  lec,
 	}
@@ -64,23 +69,36 @@ func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscrip
 // NotifySubscription is called when a subscription notice is received
 // Sends a notification to the user
 func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) error {
-	if err := s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice()); err != nil {
-		zap.L().Error("update subscription next notice time failed", zap.Error(err))
+	if err := s.publishNotificationEvent(ctx, subs); err != nil {
+		zap.L().Error("subscription notification event publish failed", zap.Error(err))
 		return err
 	}
 
-	// if err := s.publishExpense(ctx, subscription); err != nil {
-	// 	return err
-	// }
-
-	// return s.repo.Update(ctx, subscription)
-	return nil
+	return s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice())
 }
 
 // notificationEvent is the event that is published when a subscription is notified
 type notificationEvent struct {
+	Company  string  `json:"company"`
+	Service  string  `json:"service"`
+	Price    float32 `json:"price"`
+	DaysLeft int     `json:"daysLeft"`
 }
 
-func (s *Service) publishNotificationEvent(ctx context.Context) {
+func (s *Service) publishNotificationEvent(ctx context.Context, subs *Subscription) error {
+	msg := notificationEvent{
+		Company:  subs.Company,
+		Service:  subs.Service,
+		Price:    subs.Price,
+		DaysLeft: subs.Settings.BeforeDays,
+	}
 
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	s.lec.Publish(ctx, s.notificationEventChannel, msgBytes)
+
+	return nil
 }

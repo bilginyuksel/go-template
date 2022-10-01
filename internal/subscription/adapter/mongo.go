@@ -67,6 +67,14 @@ func (m *Mongo) Filter(ctx context.Context, f subscription.Filter) ([]subscripti
 	return subscriptions, nil
 }
 
+// UpdateNoticeTime updates the notice time of the subscription
+func (m *Mongo) UpdateNoticeTime(ctx context.Context, id string, noticeAt time.Time) error {
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	_, err := m.coll.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": bson.M{"notice_at": noticeAt}})
+	return err
+}
+
 type mongoSubscription struct {
 	ID               primitive.ObjectID `bson:"_id"`
 	Company          string             `bson:"company"`

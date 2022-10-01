@@ -6,6 +6,7 @@ import (
 	"gotemplate/internal/subscription"
 	subscription_adapter "gotemplate/internal/subscription/adapter"
 	subscription_port "gotemplate/internal/subscription/port"
+	"gotemplate/pkg/broker"
 	"os"
 
 	"github.com/labstack/echo/v4"
@@ -31,8 +32,10 @@ func main() {
 		panic(err)
 	}
 
+	b := broker.New()
+
 	subscriptionRepository := subscription_adapter.NewMongo(client.Database("gotemplate").Collection("subscriptions"))
-	subscriptionService := subscription.NewService(subscriptionRepository, nil)
+	subscriptionService := subscription.NewService(subscriptionRepository, b)
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)
 	subscriptionCronjob := subscription_port.NewSubscriptionNotificationCronjob(subscriptionService, 10)
 

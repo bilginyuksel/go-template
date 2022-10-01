@@ -11,10 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// Mongo is an adapter for subscription that uses MongoDB as the storage
 type Mongo struct {
 	coll *mongo.Collection
 }
 
+// NewMongo returns a new Mongo adapter for subscription
 func NewMongo(coll *mongo.Collection) *Mongo {
 	return &Mongo{
 		coll: coll,
@@ -33,6 +35,8 @@ func (m *Mongo) Insert(ctx context.Context, subs *subscription.Subscription) (st
 	return oid.Hex(), err
 }
 
+// Filter filters subscriptions based on the given filter
+// If the filter is empty, all subscriptions will be returned
 func (m *Mongo) Filter(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error) {
 	filter := make(bson.M)
 	if f.Status != "" {

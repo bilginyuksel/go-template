@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// SubscriptionService is the interface that provides subscription related methods
 type SubscriptionService interface {
 	CreateSubscription(ctx context.Context, subs *subscription.Subscription) (string, error)
 	FilterSubscriptions(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error)

@@ -8,21 +8,25 @@ import (
 )
 
 type (
+	// Repository is the interface that provides subscription storage methods
 	Repository interface {
 		Insert(ctx context.Context, subs *Subscription) (string, error)
 		Filter(ctx context.Context, filter Filter) ([]Subscription, error)
 	}
 
+	// LocalEventChannel is the interface that provides local event methods
 	LocalEventChannel interface {
 		Publish(ctx context.Context, event interface{}) error
 	}
 )
 
+// Service provides subscription apis
 type Service struct {
 	repo Repository
 	lec  LocalEventChannel
 }
 
+// NewService creates a new subscription service
 func NewService(repo Repository, lec LocalEventChannel) *Service {
 	return &Service{
 		repo: repo,
@@ -51,7 +55,7 @@ type Filter struct {
 	NoticeAt time.Time
 }
 
-// ListSubscriptions lists all subscriptions
+// FilterSubscriptions filters subscriptions
 func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscription, error) {
 	return s.repo.Filter(ctx, f)
 }

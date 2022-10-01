@@ -2,13 +2,17 @@ package subscription
 
 import "time"
 
+// Status is the subscription status
 type Status string
 
 const (
-	Active   Status = "active"
+	// Active subscriptions will be notified when it's notice time
+	Active Status = "active"
+	// Canceled subscriptions will be kept to keep history, but will not be notified
 	Canceled Status = "canceled"
 )
 
+// Subscription is the model for subscription
 type Subscription struct {
 	ID string
 
@@ -28,11 +32,13 @@ type Subscription struct {
 	NoticeAt time.Time
 }
 
+// Settings subscription notification settings
 type Settings struct {
 	Notify     bool
 	BeforeDays int
 }
 
+// NextNotice returns the subscription next notice time
 func (s *Subscription) NextNotice() time.Time {
 	now := time.Now()
 	payday := time.Date(now.Year(), now.Month(), s.MonthlyPayday, 0, 0, 0, 0, now.Location())

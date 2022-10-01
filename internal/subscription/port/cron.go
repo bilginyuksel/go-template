@@ -8,17 +8,20 @@ import (
 	"go.uber.org/zap"
 )
 
+// SubscriptionNotifier is the interface that provides subscription notification related methods
 type SubscriptionNotifier interface {
 	FilterSubscriptions(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error)
 	NotifySubscription(ctx context.Context, subs *subscription.Subscription) error
 }
 
+// SubscriptionNotificationCronjob is responsible for notifying subscriptions
 type SubscriptionNotificationCronjob struct {
 	maxNumOfConcurrentGoroutines int
 
 	svc SubscriptionNotifier
 }
 
+// NewSubscriptionNotificationCronjob creates a new subscription notification cronjob
 func NewSubscriptionNotificationCronjob(svc SubscriptionNotifier, maxNumOfConcurrentGoroutines int) *SubscriptionNotificationCronjob {
 	return &SubscriptionNotificationCronjob{
 		svc:                          svc,

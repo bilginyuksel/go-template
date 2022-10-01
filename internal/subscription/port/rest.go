@@ -32,15 +32,12 @@ func NewSubscriptionRestHandler(svc SubscriptionService) *SubscriptionRestHandle
 type (
 	// createSubscriptionRequest is the request body for creating a new subscription
 	createSubscriptionRequest struct {
-		Company          string    `json:"company"`
-		Service          string    `json:"service"`
-		Price            float32   `json:"price"`
-		Description      string    `json:"description"`
-		Start            time.Time `json:"start"`
-		End              time.Time `json:"end"`
-		PaidInstallments int       `json:"paidInstallments"`
-		MonthlyPayday    int       `json:"monthlyPayday"`
-		Settings         struct {
+		Company       string    `json:"company"`
+		Service       string    `json:"service"`
+		Price         float32   `json:"price"`
+		StartedAt     time.Time `json:"started_at"`
+		MonthlyPayday int       `json:"monthlyPayday"`
+		Settings      struct {
 			NoticeBeforeDays int  `json:"noticeBeforeDays"`
 			Notify           bool `json:"notify"`
 		} `json:"settings"`
@@ -54,14 +51,11 @@ type (
 
 func (c *createSubscriptionRequest) toSubscription() *subscription.Subscription {
 	return &subscription.Subscription{
-		Company:          c.Company,
-		Service:          c.Service,
-		Price:            c.Price,
-		Description:      c.Description,
-		Start:            c.Start,
-		End:              c.End,
-		PaidInstallments: c.PaidInstallments,
-		MonthlyPayday:    c.MonthlyPayday,
+		Company:       c.Company,
+		Service:       c.Service,
+		Price:         c.Price,
+		StartedAt:     c.StartedAt,
+		MonthlyPayday: c.MonthlyPayday,
 		Settings: subscription.Settings{
 			BeforeDays: c.Settings.NoticeBeforeDays,
 			Notify:     c.Settings.Notify,
@@ -87,16 +81,13 @@ func (h *SubscriptionRestHandler) CreateSubscription(c echo.Context) error {
 
 // subscriptionResponse is the response model for a subscription
 type subscriptionResponse struct {
-	ID               string  `json:"id"`
-	Company          string  `json:"company"`
-	Service          string  `json:"service"`
-	Price            float32 `json:"price"`
-	Description      string  `json:"description"`
-	Start            string  `json:"start"`
-	End              string  `json:"end"`
-	PaidInstallments int     `json:"paidInstallments"`
-	MonthlyPayday    int     `json:"monthlyPayday"`
-	Settings         struct {
+	ID            string  `json:"id"`
+	Company       string  `json:"company"`
+	Service       string  `json:"service"`
+	Price         float32 `json:"price"`
+	StartedAt     string  `json:"startedAt"`
+	MonthlyPayday int     `json:"monthlyPayday"`
+	Settings      struct {
 		NoticeBeforeDays int  `json:"noticeBeforeDays"`
 		Notify           bool `json:"notify"`
 	} `json:"settings"`
@@ -106,17 +97,14 @@ type subscriptionResponse struct {
 
 func newSubscriptionResponse(subs *subscription.Subscription) *subscriptionResponse {
 	return &subscriptionResponse{
-		ID:               subs.ID,
-		Company:          subs.Company,
-		Service:          subs.Service,
-		Price:            subs.Price,
-		Description:      subs.Description,
-		Start:            subs.Start.Format(time.RFC3339),
-		End:              subs.End.Format(time.RFC3339),
-		PaidInstallments: subs.PaidInstallments,
-		MonthlyPayday:    subs.MonthlyPayday,
-		Status:           string(subs.Status),
-		NoticeAt:         subs.NoticeAt,
+		ID:            subs.ID,
+		Company:       subs.Company,
+		Service:       subs.Service,
+		Price:         subs.Price,
+		StartedAt:     subs.StartedAt.Format(time.RFC3339),
+		MonthlyPayday: subs.MonthlyPayday,
+		Status:        string(subs.Status),
+		NoticeAt:      subs.NoticeAt,
 		Settings: struct {
 			NoticeBeforeDays int  `json:"noticeBeforeDays"`
 			Notify           bool `json:"notify"`

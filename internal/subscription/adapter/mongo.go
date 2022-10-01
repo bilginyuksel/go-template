@@ -72,10 +72,7 @@ type mongoSubscription struct {
 	Company          string             `bson:"company"`
 	Service          string             `bson:"service"`
 	Price            float32            `bson:"price"`
-	Description      string             `bson:"description"`
-	Start            time.Time          `bson:"start"`
-	End              time.Time          `bson:"end"`
-	PaidInstallments int                `bson:"paid_installments"`
+	StartedAt        time.Time          `bson:"started_at"`
 	MonthlyPayday    int                `bson:"monthly_payday"`
 	Notify           bool               `bson:"notify"`
 	NoticeBeforeDays int                `bson:"notice_before_days"`
@@ -89,10 +86,7 @@ func newMongoSubscription(subs *subscription.Subscription) *mongoSubscription {
 		Company:          subs.Company,
 		Service:          subs.Service,
 		Price:            subs.Price,
-		Description:      subs.Description,
-		Start:            subs.Start,
-		End:              subs.End,
-		PaidInstallments: subs.PaidInstallments,
+		StartedAt:        subs.StartedAt,
 		MonthlyPayday:    subs.MonthlyPayday,
 		Notify:           subs.Settings.Notify,
 		NoticeBeforeDays: subs.Settings.BeforeDays,
@@ -103,15 +97,12 @@ func newMongoSubscription(subs *subscription.Subscription) *mongoSubscription {
 
 func (ms *mongoSubscription) toSubscription() *subscription.Subscription {
 	return &subscription.Subscription{
-		ID:               ms.ID.Hex(),
-		Company:          ms.Company,
-		Service:          ms.Service,
-		Price:            ms.Price,
-		Description:      ms.Description,
-		Start:            ms.Start,
-		End:              ms.End,
-		PaidInstallments: ms.PaidInstallments,
-		MonthlyPayday:    ms.MonthlyPayday,
+		ID:            ms.ID.Hex(),
+		Company:       ms.Company,
+		Service:       ms.Service,
+		Price:         ms.Price,
+		StartedAt:     ms.StartedAt,
+		MonthlyPayday: ms.MonthlyPayday,
 		Settings: subscription.Settings{
 			Notify:     ms.Notify,
 			BeforeDays: ms.NoticeBeforeDays,

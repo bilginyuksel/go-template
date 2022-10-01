@@ -16,20 +16,17 @@ const (
 type Subscription struct {
 	ID string
 
-	Company     string
-	Service     string
-	Price       float32
-	Description string
-	Start       time.Time
-	End         time.Time
+	Company string
+	Service string
+	Price   float32
 
-	PaidInstallments int
-	MonthlyPayday    int
+	MonthlyPayday int
 
 	Settings Settings
 	Status   Status
 
-	NoticeAt time.Time
+	StartedAt time.Time
+	NoticeAt  time.Time
 }
 
 // Settings subscription notification settings

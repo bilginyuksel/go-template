@@ -11,6 +11,7 @@ type (
 	// Repository is the interface that provides subscription storage methods
 	Repository interface {
 		Insert(ctx context.Context, subs *Subscription) (string, error)
+		UpdateNoticeTime(ctx context.Context, id string, noticeAt time.Time) error
 		Filter(ctx context.Context, filter Filter) ([]Subscription, error)
 	}
 
@@ -61,11 +62,13 @@ func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscrip
 }
 
 // NotifySubscription is called when a subscription notice is received
-// Checks subscription date and if it is due, creates an expense
-// If it is not due, it updates the subscription date
 // Sends a notification to the user
 func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) error {
-	zap.L().Info("notifying subscription", zap.String("id", subs.ID))
+	if err := s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice()); err != nil {
+		zap.L().Error("update subscription next notice time failed", zap.Error(err))
+		return err
+	}
+
 	// if err := s.publishExpense(ctx, subscription); err != nil {
 	// 	return err
 	// }
@@ -74,25 +77,10 @@ func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) er
 	return nil
 }
 
-// type expenseEventMsg struct {
-// 	Title       string
-// 	Description string
-// 	Price       float32
-// 	Service     string
-// }
+// notificationEvent is the event that is published when a subscription is notified
+type notificationEvent struct {
+}
 
-// func (s *Service) publishExpense(ctx context.Context, subs *Subscription) error {
-// 	msg := &expenseEventMsg{
-// 		Title:       subs.Service,
-// 		Description: fmt.Sprintf("Subscription for %s", subs.Service),
-// 		Price:       subs.Price,
-// 		Service:     subs.Service,
-// 	}
+func (s *Service) publishNotificationEvent(ctx context.Context) {
 
-// 	eventBytes, err := json.Marshal(msg)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return s.lec.Publish(ctx, eventBytes)
-// }
+}

@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"gotemplate/internal/expense"
+	expense_adapter "gotemplate/internal/expense/adapter"
+	expense_port "gotemplate/internal/expense/port"
 	"gotemplate/internal/subscription"
 	subscription_adapter "gotemplate/internal/subscription/adapter"
 	subscription_port "gotemplate/internal/subscription/port"
@@ -39,8 +42,12 @@ func main() {
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)
 	subscriptionCronjob := subscription_port.NewSubscriptionNotificationCronjob(subscriptionService, 10)
 
+	expenseRepository := expense_adapter.NewMongo(client.Database("gotemplate").Collection("expenses"))
+	expenseService := expense.NewService(expenseRepository)
+	expenseRestHandler := expense_port.NewExpenseRestHandler(expenseService)
+
 	c := cron.New()
-	if _, err := c.AddFunc("0 0 0 * * *", subscriptionCronjob.Notify); err != nil {
+	if _, err := c.AddFunc("@every 10m", subscriptionCronjob.Notify); err != nil {
 		panic(err)
 	}
 	c.Run()
@@ -50,6 +57,9 @@ func main() {
 
 	e.POST("/subscriptions", subscriptionRestHandler.CreateSubscription)
 	e.GET("/subscriptions", subscriptionRestHandler.ListSubscriptions)
+
+	e.POST("/expenses", expenseRestHandler.CreateExpense)
+	e.GET("/expenses", expenseRestHandler.FilterExpenses)
 
 	if err := e.Start(fmt.Sprintf(":%d", conf.Port)); err != nil {
 		logger.Fatal("shutting down the server", zap.Error(err))

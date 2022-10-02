@@ -92,14 +92,16 @@ func buildExpenseFilter(f *expense.Filter) bson.M {
 }
 
 type mongoExpense struct {
-	Title       string    `bson:"title"`
-	Description string    `bson:"description"`
-	Price       float32   `bson:"price"`
-	At          time.Time `bson:"at"`
+	ID          primitive.ObjectID `bson:"_id"`
+	Title       string             `bson:"title"`
+	Description string             `bson:"description"`
+	Price       float32            `bson:"price"`
+	At          time.Time          `bson:"at"`
 }
 
 func (m *mongoExpense) toExpense() *expense.Expense {
 	return &expense.Expense{
+		ID:          m.ID.Hex(),
 		Title:       m.Title,
 		Description: m.Description,
 		Price:       m.Price,
@@ -109,6 +111,7 @@ func (m *mongoExpense) toExpense() *expense.Expense {
 
 func newMongoExpense(e *expense.Expense) *mongoExpense {
 	return &mongoExpense{
+		ID:          primitive.NewObjectID(),
 		Title:       e.Title,
 		Description: e.Description,
 		Price:       e.Price,

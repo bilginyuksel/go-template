@@ -96,6 +96,16 @@ type (
 	filterExpenseResponse []expenseResponse
 )
 
+func (req *filterExpenseRequest) toFilter() *expense.Filter {
+	return &expense.Filter{
+		TitleContains:   req.TitleContains,
+		LowerThanPrice:  req.LowerThan,
+		HigherThanPrice: req.HigherThan,
+		Before:          req.Before,
+		After:           req.After,
+	}
+}
+
 // FilterExpenses filters expenses by given filter
 func (h *ExpenseRestHandler) FilterExpenses(c echo.Context) error {
 	var req filterExpenseRequest
@@ -104,7 +114,7 @@ func (h *ExpenseRestHandler) FilterExpenses(c echo.Context) error {
 		return err
 	}
 
-	expenses, err := h.svc.FilterExpenses(c.Request().Context(), nil)
+	expenses, err := h.svc.FilterExpenses(c.Request().Context(), req.toFilter())
 	if err != nil {
 		return err
 	}

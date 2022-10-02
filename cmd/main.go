@@ -50,7 +50,7 @@ func main() {
 	if _, err := c.AddFunc("@every 10m", subscriptionCronjob.Notify); err != nil {
 		panic(err)
 	}
-	c.Run()
+	go c.Run()
 	defer c.Stop()
 
 	e := echo.New()

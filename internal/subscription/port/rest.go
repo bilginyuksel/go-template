@@ -127,7 +127,7 @@ func (h *SubscriptionRestHandler) ListSubscriptions(c echo.Context) error {
 		return err
 	}
 
-	var res listSubscriptionsResponse
+	res := make(listSubscriptionsResponse, 0)
 	for idx := range subscriptions {
 		res = append(res, *newSubscriptionResponse(&subscriptions[idx]))
 	}

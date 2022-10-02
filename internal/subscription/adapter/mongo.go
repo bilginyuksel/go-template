@@ -80,6 +80,7 @@ type mongoSubscription struct {
 	Company          string             `bson:"company"`
 	Service          string             `bson:"service"`
 	Price            float32            `bson:"price"`
+	Status           string             `bson:"status"`
 	StartedAt        time.Time          `bson:"started_at"`
 	MonthlyPayday    int                `bson:"monthly_payday"`
 	Notify           bool               `bson:"notify"`
@@ -93,6 +94,7 @@ func newMongoSubscription(subs *subscription.Subscription) *mongoSubscription {
 		ID:               primitive.NewObjectID(),
 		Company:          subs.Company,
 		Service:          subs.Service,
+		Status:           string(subs.Status),
 		Price:            subs.Price,
 		StartedAt:        subs.StartedAt,
 		MonthlyPayday:    subs.MonthlyPayday,
@@ -110,6 +112,7 @@ func (ms *mongoSubscription) toSubscription() *subscription.Subscription {
 		Service:       ms.Service,
 		Price:         ms.Price,
 		StartedAt:     ms.StartedAt,
+		Status:        subscription.Status(ms.Status),
 		MonthlyPayday: ms.MonthlyPayday,
 		Settings: subscription.Settings{
 			Notify:     ms.Notify,

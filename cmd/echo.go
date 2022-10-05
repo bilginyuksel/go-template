@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gotemplate/internal/expense"
 	expense_port "gotemplate/internal/expense/port"
 	"gotemplate/internal/subscription"
 	subscription_port "gotemplate/internal/subscription/port"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -15,6 +17,7 @@ func runEchoServer(
 	conf Config,
 	expenseService *expense.Service,
 	subscriptionService *subscription.Service,
+	quit chan struct{},
 ) {
 
 	e := echo.New()
@@ -28,7 +31,23 @@ func runEchoServer(
 	e.POST("/subscriptions", subscriptionRestHandler.CreateSubscription)
 	e.GET("/subscriptions", subscriptionRestHandler.ListSubscriptions)
 
-	if err := e.Start(fmt.Sprintf(":%d", conf.Port)); err != nil {
-		zap.L().Fatal("shutting down the server", zap.Error(err))
+	go func() {
+		if err := e.Start(fmt.Sprintf(":%d", conf.Port)); err != nil {
+			zap.L().Fatal("shutting down the server", zap.Error(err))
+		}
+	}()
+
+	<-quit
+
+	zap.L().Info("shutting down the server..")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := e.Shutdown(ctx); err != nil {
+		zap.L().Error("could not gracefully shutdown the server", zap.Error(err))
 	}
+
+	// notify caller that http server has stopped
+	quit <- struct{}{}
 }

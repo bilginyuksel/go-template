@@ -1,12 +1,13 @@
 # build phase
-FROM golang:1.17
+FROM golang:1.18
 
 WORKDIR /app
+
 COPY . /app
 
 ENV CGO_ENABLED=0
 
-RUN go build -o gotemplate .
+RUN go build -o gotemplate ./cmd
 
 # execution phase
 FROM alpine:latest

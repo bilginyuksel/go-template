@@ -65,26 +65,26 @@ func buildExpenseFilter(f *expense.Filter) bson.M {
 	}
 
 	if f.LowerThanPrice != 0 {
-		filter["price"] = bson.M{"$lt": f.LowerThanPrice}
+		filter["price"] = bson.M{"$lte": f.LowerThanPrice}
 	}
 
 	if f.HigherThanPrice != 0 {
 		if _, ok := filter["price"]; ok {
-			filter["price"].(bson.M)["$gt"] = f.HigherThanPrice
+			filter["price"].(bson.M)["$gte"] = f.HigherThanPrice
 		} else {
-			filter["price"] = bson.M{"$gt": f.HigherThanPrice}
+			filter["price"] = bson.M{"$gte": f.HigherThanPrice}
 		}
 	}
 
 	if !f.Before.IsZero() {
-		filter["at"] = bson.M{"$lt": f.Before}
+		filter["at"] = bson.M{"$lte": f.Before}
 	}
 
 	if !f.After.IsZero() {
 		if _, ok := filter["at"]; ok {
-			filter["at"].(bson.M)["$gt"] = f.After
+			filter["at"].(bson.M)["$gte"] = f.After
 		} else {
-			filter["at"] = bson.M{"$gt": f.After}
+			filter["at"] = bson.M{"$gte": f.After}
 		}
 	}
 

@@ -85,6 +85,79 @@ func (m *MongoTestSuite) TestInsert() {
 	m.assertExpense(expectedExpense, m.readFromMongo(ctx, id))
 }
 
+func (m *MongoTestSuite) TestFilter() {
+	ctx := context.Background()
+
+	expectedExpenses := []expense.Expense{
+		{
+			Title:       "test-1",
+			Description: "test-desc-1",
+			Price:       15,
+			At:          time.Now().Add(-time.Hour).Round(time.Minute).UTC(),
+		},
+		{
+			Title:       "test-2",
+			Description: "test-desc-2",
+			Price:       50,
+			At:          time.Now().Round(time.Minute).UTC(),
+		},
+		{
+			Title:       "test-3",
+			Description: "test-desc-3",
+			Price:       19,
+			At:          time.Now().Add(time.Hour).Round(time.Minute).UTC(),
+		},
+	}
+
+	ids := m.insertMockExpenses(ctx, expectedExpenses...)
+	expectedExpenses[0].ID = ids[0]
+	expectedExpenses[1].ID = ids[1]
+	expectedExpenses[2].ID = ids[2]
+
+	mongoAdapter := adapter.NewMongo(m.coll())
+
+	filter := &expense.Filter{
+		TitleContains:   "test",
+		LowerThanPrice:  19,
+		HigherThanPrice: 15,
+		After:           time.Now().Add(-time.Hour * 2).UTC(),
+		Before:          time.Now().Add(time.Hour * 2).UTC(),
+	}
+
+	expenses, err := mongoAdapter.Filter(ctx, filter)
+
+	m.Nil(err)
+	m.Len(expenses, 2)
+	m.Equal(expectedExpenses[0], expenses[0])
+	m.Equal(expectedExpenses[2], expenses[1])
+}
+
+func (m *MongoTestSuite) insertMockExpenses(ctx context.Context, expenses ...expense.Expense) []string {
+	arr := make(bson.A, 0)
+	for _, e := range expenses {
+		pbson := bson.M{
+			"_id":         primitive.NewObjectID(),
+			"title":       e.Title,
+			"description": e.Description,
+			"price":       e.Price,
+			"at":          e.At,
+		}
+		arr = append(arr, pbson)
+	}
+
+	res, err := m.coll().InsertMany(ctx, arr)
+	if err != nil {
+		panic(err)
+	}
+
+	var ids []string
+	for _, id := range res.InsertedIDs {
+		ids = append(ids, id.(primitive.ObjectID).Hex())
+	}
+
+	return ids
+}
+
 func (m *MongoTestSuite) assertExpense(expected *expense.Expense, actual bson.M) {
 	m.Equal(expected.ID, actual["_id"].(primitive.ObjectID).Hex())
 	m.Equal(expected.Title, actual["title"])

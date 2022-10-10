@@ -13,3 +13,6 @@ test-unit:
 coverage:
 	chmod +x scripts/code_coverage.sh
 	sh scripts/code_coverage.sh
+
+mockgen:
+	mockgen -source=internal/expense/service.go -destination=internal/expense/mock/repository.go -package=mock

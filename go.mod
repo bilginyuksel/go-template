@@ -3,6 +3,7 @@ module gotemplate
 go 1.18
 
 require (
+	github.com/golang/mock v1.6.0
 	github.com/testcontainers/testcontainers-go v0.14.0
 	go.uber.org/zap v1.23.0
 )

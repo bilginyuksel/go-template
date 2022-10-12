@@ -30,3 +30,8 @@ Run linter
 ```
 make lint
 ```
+
+Generate mocks
+```
+make mockgen
+```

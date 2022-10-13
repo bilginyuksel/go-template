@@ -82,3 +82,4 @@ jobs:
     environment: prod
     steps:
       - name: Deploy the production
+        run: echo "Deploy"

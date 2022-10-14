@@ -23,7 +23,7 @@ jobs:
   release:
     name: Build and push docker image to docker hub
     runs-on: ubuntu-latest
-    if: issue.comment.body == '/deploy'
+    if: github.event.issue.comment.body == '/deploy'
     needs: [build, code-coverage, lint]
     environment: dev
     steps:
@@ -46,12 +46,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ github.event.issue.title }}
+          labels: dev
 
-  deployment:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy PR with comment
-        run: |
-          comment=${issue.comment.body}

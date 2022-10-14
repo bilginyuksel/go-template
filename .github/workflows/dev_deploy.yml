@@ -24,7 +24,7 @@ jobs:
     name: Build and push docker image to docker hub
     runs-on: ubuntu-latest
     if: github.event.issue.comment.body == '/deploy'
-    needs: [build, code-coverage, lint]
+    needs: [build]
     environment: dev
     steps:
       - uses: actions/checkout@v2

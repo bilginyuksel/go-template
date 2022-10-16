@@ -5,6 +5,7 @@ import (
 	"gotemplate/pkg/config"
 )
 
+// Config is the configuration for the application
 type Config struct {
 	Appname string
 	Port    int

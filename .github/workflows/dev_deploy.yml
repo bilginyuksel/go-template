@@ -23,7 +23,7 @@ jobs:
   release:
     name: Build and push docker image to docker hub
     runs-on: ubuntu-latest
-    if: github.event.issue.comment.body == '/deploy'
+    if: ${{ github.event.issue.comment.body == '/deploy' }}
     needs: [build]
     environment: dev
     steps:
@@ -48,4 +48,3 @@ jobs:
           push: true
           tags: ${{ github.event.issue.title }}
           labels: dev
-

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 )
 
@@ -21,6 +22,10 @@ func runEchoServer(
 ) {
 
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+	e.Use(middleware.RequestID())
 
 	expenseRestHandler := expense_port.NewExpenseRestHandler(expenseService)
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)

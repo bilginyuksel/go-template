@@ -9,6 +9,7 @@ import (
 	subscription_port "gotemplate/internal/subscription/port"
 	"time"
 
+	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -26,6 +27,9 @@ func runEchoServer(
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
+
+	p := prometheus.NewPrometheus("echo", nil)
+	p.Use(e)
 
 	expenseRestHandler := expense_port.NewExpenseRestHandler(expenseService)
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)

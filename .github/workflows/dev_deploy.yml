@@ -5,26 +5,10 @@ on:
     types: [created]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-          cache: true
-          check-latest: true
-
-      - name: Build
-        run: go build -v ./...
-
   release:
-    name: Build and push docker image to docker hub
+    name: Release image to docker hub
     runs-on: ubuntu-latest
-    if: ${{ github.event.comment.body == '/deploy' }}
-    needs: [build]
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/deploy' }}
     environment: dev
     steps:
       - uses: actions/checkout@v2
@@ -46,10 +30,5 @@ jobs:
         with:
           context: .
           push: true
-<<<<<<< Updated upstream
           tags: dev-${{ github.event.issue.id }}
           labels: dev
-=======
-          tags: dev-#${{ github.event.issue.id }}
-          labels: ${{ steps.meta.outputs.labels }}
->>>>>>> Stashed changes

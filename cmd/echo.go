@@ -72,7 +72,7 @@ const ctxRequestID = "request_id"
 func middlewareEchoRequestID() echo.MiddlewareFunc {
 	return middleware.RequestIDWithConfig(middleware.RequestIDConfig{
 		RequestIDHandler: func(c echo.Context, id string) {
-			//nolint:errcheck
+			//nolint:staticcheck
 			contextWithRequestID := context.WithValue(c.Request().Context(), ctxRequestID, id)
 			requestWithContext := c.Request().WithContext(contextWithRequestID)
 

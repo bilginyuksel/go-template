@@ -7,6 +7,7 @@ import (
 	expense_port "gotemplate/internal/expense/port"
 	"gotemplate/internal/subscription"
 	subscription_port "gotemplate/internal/subscription/port"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo-contrib/prometheus"
@@ -64,7 +65,7 @@ func runEchoServer(
 }
 
 func healthcheck(c echo.Context) error {
-	return c.String(200, "OK")
+	return c.String(http.StatusOK, "OK")
 }
 
 const ctxRequestID = "request_id"

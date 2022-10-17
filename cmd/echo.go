@@ -26,7 +26,9 @@ func runEchoServer(
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
-	e.Use(middleware.RequestID())
+	e.Use(middlewareEchoRequestID())
+
+	e.GET("/health", healthcheck)
 
 	p := prometheus.NewPrometheus("echo", nil)
 	p.Use(e)
@@ -59,4 +61,22 @@ func runEchoServer(
 
 	// notify caller that http server has stopped
 	quit <- struct{}{}
+}
+
+func healthcheck(c echo.Context) error {
+	return c.String(200, "OK")
+}
+
+const ctxRequestID = "request_id"
+
+func middlewareEchoRequestID() echo.MiddlewareFunc {
+	return middleware.RequestIDWithConfig(middleware.RequestIDConfig{
+		RequestIDHandler: func(c echo.Context, id string) {
+			//nolint:errcheck
+			contextWithRequestID := context.WithValue(c.Request().Context(), ctxRequestID, id)
+			requestWithContext := c.Request().WithContext(contextWithRequestID)
+
+			c.SetRequest(requestWithContext)
+		},
+	})
 }

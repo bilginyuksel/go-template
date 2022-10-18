@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"gotemplate/internal/expense"
+	"gotemplate/pkg/errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,10 +28,13 @@ func NewMongo(coll *mongo.Collection) *Mongo {
 func (m *Mongo) Insert(ctx context.Context, e *expense.Expense) (string, error) {
 	res, err := m.coll.InsertOne(ctx, newMongoExpense(e))
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "mongo_expense: insert expense failed")
 	}
 
 	oid, _ := res.InsertedID.(primitive.ObjectID)
+
+	zap.L().Debug("mongo expense inserted", zap.String("id", oid.Hex()))
+
 	return oid.Hex(), nil
 }
 
@@ -38,17 +42,18 @@ func (m *Mongo) Insert(ctx context.Context, e *expense.Expense) (string, error) 
 func (m *Mongo) Filter(ctx context.Context, f *expense.Filter) ([]expense.Expense, error) {
 	filter := buildExpenseFilter(f)
 
+	zap.L().Debug("mongo expense filter built", zap.Any("filter", filter))
+
 	cursor, err := m.coll.Find(ctx, filter)
 	if err != nil {
-		zap.L().Error("failed to find expenses", zap.Error(err))
-		return nil, err
+		return nil, errors.Wrap(err, "mongo_expense: filter expenses failed")
 	}
 
 	expenses := make([]expense.Expense, 0)
 	for cursor.Next(ctx) {
 		var e mongoExpense
 		if err := cursor.Decode(&e); err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "mongo_expense: decode expense failed")
 		}
 
 		expenses = append(expenses, *e.toExpense())

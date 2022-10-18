@@ -2,6 +2,7 @@ package expense
 
 import (
 	"context"
+	"gotemplate/pkg/errors"
 	"time"
 )
 
@@ -25,7 +26,8 @@ func NewService(repo Repository) *Service {
 
 // CreateExpense creates a new expense
 func (s *Service) CreateExpense(ctx context.Context, e *Expense) (string, error) {
-	return s.repo.Insert(ctx, e)
+	id, err := s.repo.Insert(ctx, e)
+	return id, errors.Wrap(err, "expense_service: insert expense failed")
 }
 
 // Filter is used to filter list of expenses
@@ -41,5 +43,6 @@ type Filter struct {
 
 // FilterExpenses filters expenses by given filter
 func (s *Service) FilterExpenses(ctx context.Context, f *Filter) ([]Expense, error) {
-	return s.repo.Filter(ctx, f)
+	expenses, err := s.repo.Filter(ctx, f)
+	return expenses, errors.Wrap(err, "expense_service: filter expenses failed")
 }

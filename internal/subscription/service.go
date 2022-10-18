@@ -3,9 +3,8 @@ package subscription
 import (
 	"context"
 	"encoding/json"
+	"gotemplate/pkg/errors"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type (
@@ -45,7 +44,8 @@ func NewService(repo Repository, lec LocalEventChannel) *Service {
 func (s *Service) CreateSubscription(ctx context.Context, subs *Subscription) (string, error) {
 	subs.NoticeAt = subs.NextNotice()
 
-	return s.repo.Insert(ctx, subs)
+	id, err := s.repo.Insert(ctx, subs)
+	return id, errors.Wrap(err, "subscription_service: insert subscription failed")
 }
 
 // CancelSubscription cancels a subscription
@@ -63,18 +63,20 @@ type Filter struct {
 
 // FilterSubscriptions filters subscriptions
 func (s *Service) FilterSubscriptions(ctx context.Context, f Filter) ([]Subscription, error) {
-	return s.repo.Filter(ctx, f)
+	subs, err := s.repo.Filter(ctx, f)
+	return subs, errors.Wrap(err, "subscription_service: filter subscription failed")
 }
 
 // NotifySubscription is called when a subscription notice is received
 // Sends a notification to the user
 func (s *Service) NotifySubscription(ctx context.Context, subs *Subscription) error {
 	if err := s.publishNotificationEvent(ctx, subs); err != nil {
-		zap.L().Error("subscription notification event publish failed", zap.Error(err))
-		return err
+		return errors.Wrap(err, "subscription_service: publish notification event failed")
 	}
-
-	return s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice())
+	return errors.Wrap(
+		s.repo.UpdateNoticeTime(ctx, subs.ID, subs.NextNotice()),
+		"subscription_service: update notice time failed",
+	)
 }
 
 // notificationEvent is the event that is published when a subscription is notified
@@ -95,7 +97,7 @@ func (s *Service) publishNotificationEvent(ctx context.Context, subs *Subscripti
 
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "subscription_service: marshal notification event msg failed")
 	}
 
 	s.lec.Publish(ctx, s.notificationEventChannel, msgBytes)

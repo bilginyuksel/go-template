@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -76,5 +77,12 @@ func newSubscriptionService(client *mongo.Client, b *broker.Broker) *subscriptio
 func newExpenseService(client *mongo.Client) *expense.Service {
 	expenseRepository := expense_adapter.NewMongo(client.Database("gotemplate").Collection("expenses"))
 
-	return expense.NewService(expenseRepository)
+	hist := prometheus.NewHistogram(prometheus.HistogramOpts{
+		Namespace: "gotemplate",
+		Name:      "expense",
+	})
+
+	return expense.NewService(
+		expense_adapter.NewWrapperMongoMetrics(hist, expenseRepository),
+	)
 }

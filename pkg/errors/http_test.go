@@ -16,7 +16,7 @@ func TestEchoErrorHandler_ErrTypeHTTPError_SendJSONResponseImmediately(t *testin
 		JSON(http.StatusBadRequest, expectedErr).
 		Return(nil)
 
-	errors.EchoErrorHandler(nil, nil)(expectedErr, mockContext)
+	errors.EchoErrorHandler(nil)(expectedErr, mockContext)
 }
 
 func TestEchoErrorHandler_NativeErrType_MappingExists_SendResponse(t *testing.T) {
@@ -35,5 +35,5 @@ func TestEchoErrorHandler_NativeErrType_MappingExists_SendResponse(t *testing.T)
 		JSON(http.StatusBadRequest, expectedErr).
 		Return(nil)
 
-	errors.EchoErrorHandler(nil, mapper)(errors.Wrap(actualErr, "wrapped"), mockContext)
+	errors.EchoErrorHandler(mapper)(errors.Wrap(actualErr, "wrapped"), mockContext)
 }

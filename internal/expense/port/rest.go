@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 	"gotemplate/internal/expense"
+	"gotemplate/pkg/errors"
 	"net/http"
 	"time"
 
@@ -26,6 +27,11 @@ func NewExpenseRestHandler(svc ExpenseService) *ExpenseRestHandler {
 	return &ExpenseRestHandler{
 		svc: svc,
 	}
+}
+
+// HandleErrors handle expense rest errors
+func (h *ExpenseRestHandler) HandleErrors(err error) *errors.HTTPError {
+	return nil
 }
 
 type (

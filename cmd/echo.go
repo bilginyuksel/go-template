@@ -7,6 +7,7 @@ import (
 	expense_port "gotemplate/internal/expense/port"
 	"gotemplate/internal/subscription"
 	subscription_port "gotemplate/internal/subscription/port"
+	"gotemplate/pkg/errors"
 	"net/http"
 	"time"
 
@@ -24,6 +25,7 @@ func runEchoServer(
 ) {
 
 	e := echo.New()
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
@@ -36,6 +38,11 @@ func runEchoServer(
 
 	expenseRestHandler := expense_port.NewExpenseRestHandler(expenseService)
 	subscriptionRestHandler := subscription_port.NewSubscriptionRestHandler(subscriptionService)
+
+	e.HTTPErrorHandler = errors.EchoErrorHandler(
+		expenseRestHandler.HandleErrors,
+		subscriptionRestHandler.HandleErrors,
+	)
 
 	e.POST("/expenses", expenseRestHandler.CreateExpense)
 	e.GET("/expenses", expenseRestHandler.FilterExpenses)

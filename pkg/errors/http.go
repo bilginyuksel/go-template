@@ -29,7 +29,7 @@ func (he *HTTPError) Error() string {
 
 // EchoErrorHandler is a custom error handler written for echo http framework
 // It converts native go error to HTTPError and writes it to response
-func EchoErrorHandler(defaultErr *HTTPError, mappers ...HTTPErrorMapperFunc) echo.HTTPErrorHandler {
+func EchoErrorHandler(mappers ...HTTPErrorMapperFunc) echo.HTTPErrorHandler {
 	return func(err error, c echo.Context) {
 		if herror, ok := err.(*HTTPError); ok {
 			_ = c.JSON(herror.StatusCode, herror)

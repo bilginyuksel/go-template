@@ -53,7 +53,7 @@ func (c *SubscriptionNotificationCronjob) notifyAllDueSubscriptions(ctx context.
 
 		go func(subs *subscription.Subscription) {
 			if err := c.svc.NotifySubscription(ctx, subs); err != nil {
-				zap.L().Error("failed to notify subscription", zap.Error(err))
+				zap.L().Error("failed to notify subscription", zap.Error(err), zap.Any("subscription", subs))
 			}
 
 			<-routines

@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"gotemplate/internal/subscription"
+	"gotemplate/pkg/errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,12 +28,14 @@ func NewMongo(coll *mongo.Collection) *Mongo {
 func (m *Mongo) Insert(ctx context.Context, subs *subscription.Subscription) (string, error) {
 	res, err := m.coll.InsertOne(ctx, newMongoSubscription(subs))
 	if err != nil {
-		zap.L().Error("failed to insert subscription", zap.Error(err))
-		return "", err
+		return "", errors.Wrap(err, "mongo_subscription: failed to insert subscription")
 	}
 
 	oid, _ := res.InsertedID.(primitive.ObjectID)
-	return oid.Hex(), err
+
+	zap.L().Debug("mongo subscription inserted", zap.String("id", oid.Hex()))
+
+	return oid.Hex(), nil
 }
 
 // Filter filters subscriptions based on the given filter
@@ -40,25 +43,25 @@ func (m *Mongo) Insert(ctx context.Context, subs *subscription.Subscription) (st
 func (m *Mongo) Filter(ctx context.Context, f subscription.Filter) ([]subscription.Subscription, error) {
 	filter := make(bson.M)
 	if f.Status != "" {
-		filter["status"] = f.Status
+		filter["status"] = string(f.Status)
 	}
 
 	if !f.NoticeAt.IsZero() {
 		filter["noticeAt"] = f.NoticeAt
 	}
 
-	cursor, err := m.coll.Find(ctx, bson.M{"status": string(f.Status)})
+	zap.L().Debug("mongo subscription filter built", zap.Any("filter", filter))
+
+	cursor, err := m.coll.Find(ctx, filter)
 	if err != nil {
-		zap.L().Error("failed to get all subscriptions", zap.Error(err))
-		return nil, err
+		return nil, errors.Wrap(err, "mongo_subscription: failed to get all subscriptions")
 	}
 
 	subscriptions := make([]subscription.Subscription, 0)
 	for cursor.Next(ctx) {
 		var mongoSubs mongoSubscription
 		if err := cursor.Decode(&mongoSubs); err != nil {
-			zap.L().Error("failed to decode subscription", zap.Error(err))
-			return nil, err
+			return nil, errors.Wrap(err, "mongo_subscription: failed to decode subscription")
 		}
 
 		subscriptions = append(subscriptions, *mongoSubs.toSubscription())
@@ -72,7 +75,7 @@ func (m *Mongo) UpdateNoticeTime(ctx context.Context, id string, noticeAt time.T
 	oid, _ := primitive.ObjectIDFromHex(id)
 
 	_, err := m.coll.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": bson.M{"notice_at": noticeAt}})
-	return err
+	return errors.Wrap(err, "mongo_subscription: failed to update notice time")
 }
 
 type mongoSubscription struct {

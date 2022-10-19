@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 	"gotemplate/internal/subscription"
+	"gotemplate/pkg/errors"
 	"net/http"
 	"time"
 
@@ -27,6 +28,11 @@ func NewSubscriptionRestHandler(svc SubscriptionService) *SubscriptionRestHandle
 	return &SubscriptionRestHandler{
 		svc: svc,
 	}
+}
+
+// HandleErrors handle subscription rest errors
+func (h *SubscriptionRestHandler) HandleErrors(err error) *errors.HTTPError {
+	return errors.NewHTTPError(http.StatusInternalServerError, "internal server error")
 }
 
 type (

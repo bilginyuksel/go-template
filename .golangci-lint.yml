@@ -81,6 +81,5 @@ linters:
     - varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     - wrapcheck # checks that errors returned from external packages are wrapped
     - maintidx # measures the maintainability index of each function
-    - gofmt # [replaced by goimports] checks whether code was gofmt-ed
     - gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
     - depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages

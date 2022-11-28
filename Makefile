@@ -1,3 +1,6 @@
+files_to_include_coverage=`go list ./... | grep -v mock | grep -v cmd`
+coverage_threshold=80
+
 up:
 	docker-compose up
 
@@ -8,7 +11,7 @@ lint:
 	golangci-lint run
 
 test:
-	go test ./...
+	go test -coverprofile=coverage.out -covermode=atomic ${files_to_include_coverage}
 
 test-unit:
 	go test -short ./...

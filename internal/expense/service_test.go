@@ -12,12 +12,17 @@ import (
 )
 
 func TestCreateExpense(t *testing.T) {
+	expectedExpense := &expense.Expense{}
+
 	mockRepository := mock.NewMockRepository(gomock.NewController(t))
+	mockRepository.EXPECT().
+		Insert(gomock.Any(), expectedExpense).
+		Return("expected-id", nil)
 
 	svc := expense.NewService(mockRepository)
 
-	id, err := svc.CreateExpense(context.TODO(), &expense.Expense{})
+	id, err := svc.CreateExpense(context.TODO(), expectedExpense)
 
-	assert.NotNil(t, err)
-	assert.Equal(t, "sfad", id)
+	assert.NoError(t, err)
+	assert.Equal(t, "expected-id", id)
 }

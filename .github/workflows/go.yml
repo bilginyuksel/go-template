@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
           cache: true
           check-latest: true
 
@@ -30,18 +30,25 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
           cache: true
           check-latest: true
 
-      - name: Run Coverage
-        run: |
-          chmod +x scripts/code_coverage.sh && sh scripts/code_coverage.sh
+      - name: Run tests
+        run: make test
+
+      - name: Run coverage
+        run: make coverage
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+          check-latest: true
       - name: Golang Linter
         uses: golangci/golangci-lint-action@v3.1.0
         with:

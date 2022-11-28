@@ -21,7 +21,6 @@ linters:
     - asciicheck # checks that your code does not contain non-ASCII identifiers
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
-    #- contextcheck # checks the function whether use a non-inherited context # TODO: enable after golangci-lint uses https://github.com/sylvia7788/contextcheck/releases/tag/v1.0.7
     - cyclop # checks function and package cyclomatic complexity
     - dupl # tool for code clone detection
     - durationcheck # checks for two durations multiplied together
@@ -82,6 +81,5 @@ linters:
     - varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     - wrapcheck # checks that errors returned from external packages are wrapped
     - maintidx # measures the maintainability index of each function
-    - gofmt # [replaced by goimports] checks whether code was gofmt-ed
     - gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
     - depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages

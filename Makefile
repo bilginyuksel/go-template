@@ -16,7 +16,7 @@ test:
 test-unit:
 	go test -short ./...
 
-coverage: @test
+coverage:
 	chmod +x scripts/code_coverage.sh
 	sh scripts/code_coverage.sh
 

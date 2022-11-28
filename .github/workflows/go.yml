@@ -35,13 +35,10 @@ jobs:
           check-latest: true
 
       - name: Run tests
-        run:
-          echo 'hello world'
-
+        run: make test
 
       - name: Run coverage
-        run: |
-          chmod +x scripts/code_coverage.sh && sh scripts/code_coverage.sh
+        run: make coverage
 
   lint:
     runs-on: ubuntu-latest

@@ -34,7 +34,12 @@ jobs:
           cache: true
           check-latest: true
 
-      - name: Run Coverage
+      - name: Run tests
+        run:
+          echo 'hello world'
+
+
+      - name: Run coverage
         run: |
           chmod +x scripts/code_coverage.sh && sh scripts/code_coverage.sh
 
